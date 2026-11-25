@@ -31,20 +31,42 @@ function nameScore(username) {
   return (hash % 105) + 1;
 }
 
-/** Edit these templates. Placeholders: {user} {username} {score} */
+/** Edit these pools. Placeholders: {user} {username} {score} */
 const WELCOME_BY_SCORE = {
   // 1–40
-  low: "Hey {username}, welcome to Zemuria! Mmhh, I kind of don't 'vibe' with the name. I give it **{score}** points.",
+  low: [
+    "Hey {username}, welcome to Zemuria! Mmhh, I kind of don't 'vibe' with the name if I'm using Nadia's words. **{score}** points.",
+    "Welcome to Zemuria, {user}. That name is certainly... a choice. I'm giving it **{score}** points.",
+    "{username} entered Zemuria! Not my favorite name, if I'm honest. Score: **{score}** points.",
+  ],
   // 41–70
-  mid: "{user} just joined! Welcome to Zemuria! I approve of the name! Your name gets **{score}** points from me.",
-  // 71–105
-  high: "Welcome to Zemuria, {user}! It's a cute name! I give your name **{score}** points.",
+  mid: [
+    "{user} just joined! Welcome to Zemuria! I approve of the name! Your name gets **{score}** points from me.",
+    "Hey {username}, welcome to Zemuria! I like the sound of your name! **{score}** points.",
+    "Welcome to Zemuria, {user}! The name is alright... I give it **{score}** points.",
+  ],
+  // 71–100
+  high: [
+    "Welcome to Zemuria, {user}! It's a cute name! **{score}** points!",
+    "Hey {username}! Welcome! ...Oh! That's a nice name! I give it **{score}** points!",
+    "Nadia, look! A new Imperial Picnic Front member! Welcome, {user}! As for the name, hmm... **{score}** points!",
+  ],
+  // 101–105
+  legendary: [
+    "Rufus, Rufus! {user} has entered Zemuria! Your name is as perfect as Lapis! **{score}** points!",
+  ],
 };
 
-function templateForScore(score) {
+function poolForScore(score) {
   if (score <= 40) return WELCOME_BY_SCORE.low;
   if (score <= 70) return WELCOME_BY_SCORE.mid;
-  return WELCOME_BY_SCORE.high;
+  if (score <= 100) return WELCOME_BY_SCORE.high;
+  return WELCOME_BY_SCORE.legendary;
+}
+
+function templateForScore(score) {
+  const pool = poolForScore(score);
+  return pool[Math.floor(Math.random() * pool.length)];
 }
 
 function formatWelcome(template, member, score) {

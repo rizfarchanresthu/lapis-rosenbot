@@ -34,13 +34,14 @@ You should see `Logged in as YourBot#1234`. Join with a test account (or kick/re
 
 ### Customize welcome messages
 
-Edit `WELCOME_BY_SCORE` and the thresholds in `templateForScore()` in [`index.js`](index.js).
+Edit the sentence pools in `WELCOME_BY_SCORE` in [`index.js`](index.js). Score is still seeded from the username; within a band, a line is picked with `Math.random()` each join.
 
-| Score range | Key  | Tone (default)   |
-|-------------|------|------------------|
-| 1–40        | low  | doesn't vibe     |
-| 41–70       | mid  | approves         |
-| 71–105      | high | cute name        |
+| Score range | Key        | Pool size | Tone (default) |
+|-------------|------------|-----------|----------------|
+| 1–40        | low        | 3         | doesn't vibe   |
+| 41–70       | mid        | 3         | approves       |
+| 71–100      | high       | 3         | cute / great   |
+| 101–105     | legendary  | 1         | legendary      |
 
 Placeholders:
 
