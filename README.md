@@ -52,6 +52,10 @@ Placeholders:
 | `{username}`  | Plain username                   |
 | `{score}`     | Name score from 1 to 105         |
 
+### Boost messages
+
+Edit `BOOST_MESSAGES` in [`index.js`](index.js). When someone starts boosting, one line is picked with `Math.random()` and posted to `WELCOME_CHANNEL_IDS`. Placeholders are `{user}` and `{username}`. A second boost from someone who is already boosting does not post again; stopping and boosting again does.
+
 ## Host 24/7 on your Ubuntu VPS (PM2)
 
 ### 1. Install Node.js 20 LTS

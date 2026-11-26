@@ -61,6 +61,17 @@ const WELCOME_BY_SCORE = {
 /** Sent after the welcome when CHECK_CHANNEL_ID is set. Placeholder: {channel} */
 const CHECK_CHANNEL_MESSAGE = 'Be sure to go to the {channel} to get more informations about Zemuria!';
 
+/** Placeholders: {user} {username} */
+const BOOST_MESSAGES = [
+  "{user} just boosted Zemuria! Rufus, we have a patron of the Imperial Picnic Front!",
+  "Oh! {user} boosted the server! Thank you! Hm~ hm~ hm~. I can taste more sweets now~",
+  "A boost from {user}! Nadia, look, someone actually likes it here!",
+  "{user} boosted Zemuria! Swin, let's thank them together!",
+];
+
+/** Uncached members: only treat a very recent premiumSince as a new boost. */
+const RECENT_BOOST_MS = 60 * 1000;
+
 function poolForScore(score) {
   if (score <= 40) return WELCOME_BY_SCORE.low;
   if (score <= 70) return WELCOME_BY_SCORE.mid;
@@ -84,6 +95,41 @@ function formatCheckChannel() {
   return CHECK_CHANNEL_MESSAGE.replaceAll('{channel}', `<#${checkChannelId}>`);
 }
 
+function formatBoost(template, member) {
+  return template
+    .replaceAll('{user}', `<@${member.id}>`)
+    .replaceAll('{username}', member.user.username);
+}
+
+function boostLine(member) {
+  const template = BOOST_MESSAGES[Math.floor(Math.random() * BOOST_MESSAGES.length)];
+  return formatBoost(template, member);
+}
+
+function startedBoosting(oldMember, newMember) {
+  const premiumSince = newMember.premiumSince;
+  if (!premiumSince || oldMember.premiumSince) return false;
+  if (oldMember.partial && Date.now() - premiumSince.getTime() > RECENT_BOOST_MS) return false;
+  return true;
+}
+
+async function sendToWelcomeChannels(member, lines) {
+  for (const channelId of welcomeChannelIds) {
+    try {
+      const channel = await member.guild.channels.fetch(channelId);
+      if (!channel || !channel.isTextBased()) {
+        console.error(`Welcome channel ${channelId} not found or not text-based`);
+        continue;
+      }
+      for (const line of lines) {
+        await channel.send(line);
+      }
+    } catch (err) {
+      console.error(`Failed to send message to ${channelId}:`, err);
+    }
+  }
+}
+
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -99,24 +145,14 @@ client.once('ready', () => {
 client.on('guildMemberAdd', async (member) => {
   const score = nameScore(member.user.username);
   const template = templateForScore(score);
-  const content = formatWelcome(template, member, score);
-  const checkContent = checkChannelId ? formatCheckChannel() : null;
+  const lines = [formatWelcome(template, member, score)];
+  if (checkChannelId) lines.push(formatCheckChannel());
+  await sendToWelcomeChannels(member, lines);
+});
 
-  for (const channelId of welcomeChannelIds) {
-    try {
-      const channel = await member.guild.channels.fetch(channelId);
-      if (!channel || !channel.isTextBased()) {
-        console.error(`Welcome channel ${channelId} not found or not text-based`);
-        continue;
-      }
-      await channel.send(content);
-      if (checkContent) {
-        await channel.send(checkContent);
-      }
-    } catch (err) {
-      console.error(`Failed to send welcome message to ${channelId}:`, err);
-    }
-  }
+client.on('guildMemberUpdate', async (oldMember, newMember) => {
+  if (!startedBoosting(oldMember, newMember)) return;
+  await sendToWelcomeChannels(newMember, [boostLine(newMember)]);
 });
 
 client.login(token);
