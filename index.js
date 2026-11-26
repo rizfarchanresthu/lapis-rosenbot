@@ -11,6 +11,7 @@ const welcomeChannelIds = (process.env.WELCOME_CHANNEL_IDS || process.env.WELCOM
   .split(',')
   .map((id) => id.trim())
   .filter(Boolean);
+const checkChannelId = (process.env.CHECK_CHANNEL_ID || '').trim();
 
 if (!token) {
   console.error('Missing DISCORD_TOKEN in .env');
@@ -57,6 +58,9 @@ const WELCOME_BY_SCORE = {
   ],
 };
 
+/** Sent after the welcome when CHECK_CHANNEL_ID is set. Placeholder: {channel} */
+const CHECK_CHANNEL_MESSAGE = 'Be sure to go to the {channel} to get more informations about Zemuria!';
+
 function poolForScore(score) {
   if (score <= 40) return WELCOME_BY_SCORE.low;
   if (score <= 70) return WELCOME_BY_SCORE.mid;
@@ -76,6 +80,10 @@ function formatWelcome(template, member, score) {
     .replaceAll('{score}', String(score));
 }
 
+function formatCheckChannel() {
+  return CHECK_CHANNEL_MESSAGE.replaceAll('{channel}', `<#${checkChannelId}>`);
+}
+
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -92,6 +100,7 @@ client.on('guildMemberAdd', async (member) => {
   const score = nameScore(member.user.username);
   const template = templateForScore(score);
   const content = formatWelcome(template, member, score);
+  const checkContent = checkChannelId ? formatCheckChannel() : null;
 
   for (const channelId of welcomeChannelIds) {
     try {
@@ -101,6 +110,9 @@ client.on('guildMemberAdd', async (member) => {
         continue;
       }
       await channel.send(content);
+      if (checkContent) {
+        await channel.send(checkContent);
+      }
     } catch (err) {
       console.error(`Failed to send welcome message to ${channelId}:`, err);
     }

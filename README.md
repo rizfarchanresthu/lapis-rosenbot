@@ -18,7 +18,8 @@ Discord.js welcome bot that greets new members with a custom message and a **use
    - Bot permissions: `View Channels`, `Send Messages`, `Read Message History`
 5. Open the generated invite URL, pick your server, and authorize.
 6. In Discord, enable Developer Mode (User Settings → Advanced), right-click each welcome channel → **Copy Channel ID**. Put them in `.env` as `WELCOME_CHANNEL_IDS` (comma-separated).
-7. Ensure the bot’s role can see and send messages in **both** channels.
+7. Copy the channel new members should check into `.env` as `CHECK_CHANNEL_ID`. The follow-up sentence lives in `CHECK_CHANNEL_MESSAGE` in [`index.js`](index.js). Leave it empty to skip that message.
+8. Ensure the bot’s role can see and send messages in **both** channels.
 
 ## Local / first run
 
